@@ -5,7 +5,8 @@ require("dotenv").config(); // Load environment variables from .env file
 const multer = require("multer");
 const twilio = require("twilio");
 const cors = require("cors");
-const session = require("express-session")
+const session = require("express-session");
+const crypto = require("crypto");
 
 const port = 3000;
 
@@ -21,6 +22,10 @@ const sanity = createClient({
     apiVersion: "2023-01-01",
     token: process.env.SANITY_TOKEN,
   });
+
+// Настройка multer для загрузки файлов
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 
 // Endpoint для проверки сервера
@@ -75,6 +80,43 @@ app.get("/events", async (req, res) => {
       res.status(500).json({ error: "Failed to add contact" });
     }
   });
+
+  // Endpoint для добавления контактов с файлами
+  app.post("/clients", upload.array("files", 10), async (req, res) => {
+    try {
+        const { name, email, phone } = req.body;
+        if (!name || !email || !phone) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        // Загрузка файлов в Sanity
+        const fileUploads = req.files.map(async (file) => {
+            const asset = await sanity.assets.upload("file", file.buffer, { filename: file.originalname });
+            return {
+                _key: crypto.randomUUID(), // Генерация уникального ключа
+                _type: "file",
+                asset: { _type: "reference", _ref: asset._id }
+            };
+        });
+
+        const uploadedFiles = await Promise.all(fileUploads);
+
+        // Создание документа в Sanity
+        const doc = {
+            _type: "client",
+            name,
+            email,
+            phone,
+            files: uploadedFiles,
+        };
+
+        const result = await sanity.create(doc);
+        res.status(201).json({ message: "Contact added successfully", data: result });
+    } catch (error) {
+        console.error("Error adding contact:", error);
+        res.status(500).json({ error: "Failed to add contact" });
+    }
+});
   
   // Запуск сервера
   app.listen(port, () => {
