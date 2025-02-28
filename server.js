@@ -23,6 +23,8 @@ const sanity = createClient({
     token: process.env.SANITY_TOKEN,
   });
 
+  const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+
 // Настройка multer для загрузки файлов
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -118,9 +120,6 @@ app.get("/clients", async (req, res) => {
   }
 });
 
-
-
-  
 // Endpoint для отправки OTP
 app.post("/send-otp", async (req, res) => {
   const { phone } = req.body;
@@ -139,17 +138,19 @@ app.post("/send-otp", async (req, res) => {
   // Генерация 4-значного OTP
   const otp = Math.floor(1000 + Math.random() * 9000).toString();
   
-  // Сохранение OTP в сессии
-  // req.session.otp = otp;
-  // req.session.phone = phone;
+ 
+  req.session.otp = otp;
+  req.session.phone = phone;
 
   try {
-    // Здесь можно раскомментировать, если нужно отправлять OTP по SMS через Twilio
-    // await twilioClient.messages.create({
-    //   body: `Your verification code is: ${otp}`,
-    //   from: process.env.TWILIO_PHONE,
-    //   to: phone,
-    // });
+    //  отправлять OTP по SMS через Twilio   
+    twilioClient.messages
+    .create({
+        body: `Your verification code is: ${otp}`,
+        from: process.env.TWILIO_PHONE,
+        to: phone
+    })
+    .then(message => console.log(message.sid));
 
     // Создание документа в Sanity
     const doc = {
@@ -177,6 +178,7 @@ app.post("/send-otp", async (req, res) => {
   }
 });
 
+// Endpoint для отправки валидации
 app.post("/validation", async (req, res) => {
   const { phone, otp } = req.body;
 
