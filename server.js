@@ -35,33 +35,6 @@ app.get("/ping", (req, res) => {
   res.json({ message: "Server is running! 🚀" });
 });
 
-// Endpoint для получения событий
-app.get("/events", async (req, res) => {
-    try {
-      const query = `*[_type == "events"] { 
-        title,
-        date,
-        description,
-        backgroundImages,
-        mapLink,
-        category,
-        attendees[]->{
-          name,
-          academicTitle,
-          photoUrl
-        }
-      }`;
-      
-      const events = await sanity.fetch(query);
-      res.json(events);
-    } catch (error) {
-      console.error("Error fetching events:", error);
-      res.status(500).json({ error: "Failed to fetch events" });
-    }
-  });
-
-
-
   // Endpoint для добавления контактов с файлами
   app.post("/clients", upload.array("files", 10), async (req, res) => {
     try {
@@ -178,7 +151,7 @@ app.post("/send-otp", async (req, res) => {
   }
 });
 
-// Endpoint для отправки валидации
+// Endpoint для  алидации
 app.post("/validation", async (req, res) => {
   const { phone, otp } = req.body;
 
