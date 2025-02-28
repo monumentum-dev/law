@@ -112,8 +112,8 @@ app.post("/send-otp", async (req, res) => {
   const otp = Math.floor(1000 + Math.random() * 9000).toString();
   
  
-  req.session.otp = otp;
-  req.session.phone = phone;
+  // req.session.otp = otp;
+  // req.session.phone = phone;
 
   try {
     //  отправлять OTP по SMS через Twilio   
