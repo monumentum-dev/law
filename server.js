@@ -117,13 +117,13 @@ app.post("/send-otp", async (req, res) => {
 
   try {
     //  отправлять OTP по SMS через Twilio   
-    twilioClient.messages
-    .create({
-        body: `Your verification code is: ${otp}`,
-        from: process.env.TWILIO_PHONE,
-        to: phone
-    })
-    .then(message => console.log(message.sid));
+    // twilioClient.messages
+    // .create({
+    //     body: `Your verification code is: ${otp}`,
+    //     from: process.env.TWILIO_PHONE,
+    //     to: phone
+    // })
+    // .then(message => console.log(message.sid));
 
     // Создание документа в Sanity
     const doc = {
