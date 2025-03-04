@@ -71,6 +71,30 @@ app.get("/ping", (req, res) => {
     }
 });
 
+ // Endpoint для добавления контактов с ссылками
+app.post("/links", async (req, res) => {
+  try {
+      const { name, phone, link } = req.body;
+      if (!name || !phone || !link) {
+          return res.status(400).json({ error: "All fields are required" });
+      }
+
+      // Создание документа в Sanity
+      const doc = {
+          _type: "link",
+          name,
+          phone,
+          link,
+      };
+
+      const result = await sanity.create(doc);
+      res.status(201).json({ message: "Link added successfully", data: result });
+  } catch (error) {
+      console.error("Error adding link:", error);
+      res.status(500).json({ error: "Failed to add link" });
+  }
+});
+
 // Endpoint для получения всех клиентов
 app.get("/clients", async (req, res) => {
   try {
